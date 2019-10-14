@@ -6,5 +6,5 @@ Note: This language is still in development, many features may not work as expec
 # Features
 An ever-increasing list of cool things to be excited about
 
-# What About Syntax?
+# What About Syntax (Todo)?
 See `example.rawm` for an introduction to the language
