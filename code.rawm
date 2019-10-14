@@ -1,0 +1,32 @@
+// Single line comment
+
+/*
+	Multi-line comment
+*/
+
+
+int myInt;
+string myString = "abc";
+bool myBool = true;
+
+
+if(true && 10 > 0) {
+	myInt = 100;
+	//print("Hello, Program!");
+}
+else if(myInt + 10 > 10) {
+	myInt = 22 + 20;
+	//print("Goodbye, Program!");
+}
+
+
+int returnFive = function(depth) {
+	if(depth == 5) {
+		return depth;
+	}
+	else {
+		return returnFive(depth + 1);
+	}
+}
+
+returnFive(0);
