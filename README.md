@@ -1,7 +1,7 @@
 # MathScript
-A new *compiled* programming language, useful for complex math operations.
+A new *compiled* programming language, built as a mix between JS, C++, and Python.
 
-Note: This language is still in development, many features may not work as expected
+Note: This language is still in development, some features may not work as expected.
 
 # Features
 An ever-increasing list of cool things to be excited about
