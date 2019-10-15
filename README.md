@@ -11,5 +11,5 @@ An ever-increasing list of cool things to be excited about
  - Functions
  - I/O
 
-# What About Syntax (Todo)?
-See `example.rawm` for an introduction to the language
+# What About Syntax?
+See `example.rawm` for an introduction to the language (Todo)
