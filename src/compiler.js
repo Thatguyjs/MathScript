@@ -6,9 +6,9 @@ let Main = {
 
 		[/;/, 'EOL'],
 
-		[/\[|\]/, 'ARRAY'],
-		[/\{|\}/, 'OBJECT'],
 		[/\(|\)/, 'PAREN'],
+		[/\{|\}/, 'OBJECT'],
+		[/\[|\]/, 'ARRAY'],
 
 		[/\+|\-|\/|\*|>|<|>=|<=|==|&&|\|\|/, 'OPERATE'],
 		[/=/, 'SET'],
@@ -22,6 +22,8 @@ let Main = {
 		[/\d+/, 'NUMBER'],
 		[/\"|\'|\`/, 'STRING'],
 		[/true|false/, 'BOOL'],
+
+		[/null/, 'NULL'],
 
 		[/[a-z]+/i, 'NAME']
 	],
@@ -43,7 +45,7 @@ let Main = {
 	},
 
 	globalAllowedTypes: [
-		'OPERATOR', 'FUNCTION'
+		'OPERATOR', 'FUNCTION', 'ARRAY'
 	],
 
 	data: "",
@@ -200,7 +202,7 @@ Main.generateTree = function() {
 				let node = {
 					type: "SET",
 					id: token.value,
-					data: walk()
+					value: walk()
 				};
 
 				// TODO: Check value type
@@ -234,7 +236,7 @@ Main.generateTree = function() {
 				type: "DATATYPE",
 				name: token.value,
 				id: peek.value,
-				value: null
+				value: { type: "NULL", value: 'null' }
 			};
 
 			if(Main.tokens[current+2].type === 'SET') {
@@ -242,11 +244,17 @@ Main.generateTree = function() {
 				node.value = walk();
 
 				if(!Main.globalAllowedTypes.includes(node.value.type) && node.value.type !== token.holds) {
-					console.log(token.holds);
+					Main.error = true;
 					console.log("TypeError");
 				}
 			}
-			else current += 2;
+			else if(Main.tokens[current+2].type === 'EOL') {
+				current += 2;
+			}
+			else {
+				Main.error = true;
+				console.log(`Unexpected token '${Main.tokens[current+2].value}'`);
+			}
 
 			return node;
 		}
@@ -352,6 +360,71 @@ Main.generateTree = function() {
 }
 
 
+// Convert the AST into a compact string
+Main.compileNode = function(node) {
+	let params;
+	let value;
+
+	switch(node.type) {
+
+		case 'Program':
+			return node.body.map(Main.compileNode).join('');
+		break;
+
+		case 'EOL':
+			return '~CMD:~T;EOL:~~CMD:';
+		break;
+
+		// TODO: Parenthesis
+
+		// TODO: Objects
+
+		// TODO: Arrays
+
+		case 'OPERATE':
+			params = node.params.map(Main.compileNode).join('');
+			return `~CMD:~T;OP~N;${node.name}~P;${params}~~CMD:`;
+		break;
+
+		case 'SET':
+			value = Main.compileNode(node.value);
+			return `~CMD:~T;SET~I;${node.id}~V;${value}~~CMD:`;
+		break;
+
+		case 'RETURN':
+			return `~CMD:~T;RET~V;${Main.compileNode(node.value)}~~CMD:`;
+		break;
+
+		case 'STATEMENT':
+			params = Main.compileNode(node.params);
+			value = node.data.map(Main.compileNode).join('');
+			return `~CMD:~T;STA~N;${node.name}~P;${params}~D;${value}`;
+		break;
+
+		case 'DATATYPE':
+			value = Main.compileNode(node.value);
+			return `~CMD:~T;DEF~N;${node.name}~I;${node.id}~V;${value}~~CMD:`;
+		break;
+
+		case 'FUNCTION':
+			params = node.params.map(Main.compileNode).join('');
+			value = node.data.map(Main.compileNode).join('');
+			return `~CMD:~T;FUNC~P;${params}~D;${value}`;
+		break;
+
+		case 'CALL':
+			params = node.params.map(Main.compileNode).join('');
+			return `~CMD:~T:CALL~I;${node.id}~P;${params}`;
+		break;
+
+		default:
+			return `~OBJ:~T;${node.type}~V;${node.value}:~~OBJ:`;
+		break;
+
+	}
+}
+
+
 // Compile source code
 Main.eval = function(data) {
 	this.error = false;
@@ -365,8 +438,11 @@ Main.eval = function(data) {
 	// Create AST (Abstract Syntax Tree) from the tokens
 	if(this.generateTree() === null) return "ERROR";
 
-	// Re-use data as compiled code
-	this.data = JSON.stringify(this.tree, null, '\t');
+	// Re-use 'data' as compiled code
+	this.data = "";
+	this.data = this.compileNode(this.tree);
+
+	if(this.data === null) return "ERROR";
 
 	//console.log("Compiled successfully");
 	return this.data;

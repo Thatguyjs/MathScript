@@ -9,14 +9,14 @@ int myInt;
 string myString = "abc";
 bool myBool = true;
 
+myInt = 5;
+
 
 if(true && 10 > 0) {
-	myInt = 100;
-	//print("Hello, Program!");
+	print("Hello, Program!");
 }
-else if(myInt + 10 > 10) {
-	myInt = 22 + 20;
-	//print("Goodbye, Program!");
+else if(myInt + 10 > 20) {
+	print("Goodbye, Program!");
 }
 
 
