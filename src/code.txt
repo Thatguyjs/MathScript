@@ -1,0 +1,6 @@
+int a = 5 * 2 + 10;
+bool yes = true;
+string MathScript = "Hello, World";
+
+print("A is:");
+print(a);
