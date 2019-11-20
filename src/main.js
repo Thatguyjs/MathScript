@@ -1,7 +1,8 @@
 const process = require("process");
+const Command = require("./command.js");
 
 const Compiler = require("./compiler/main.js");
-// const Parser = require("./parser/main.js");
+const Parser = require("./parser/main.js");
 
 
 // Construct a command to compile or parse
