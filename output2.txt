@@ -1,4 +1,0 @@
-def 0 mul 5 2
-; Print is at [60]
-run 60 "A is" end
-run 60 0 end
