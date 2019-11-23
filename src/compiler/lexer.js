@@ -85,9 +85,6 @@ Main.generateToken = function() {
 					};
 				break;
 
-				case 'BOOLEAN':
-					if(match[0] === 'true') match[0] = "1";
-					else match[0] = "0";
 				default:
 					this.advance(match[0].length);
 

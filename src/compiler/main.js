@@ -57,6 +57,7 @@ Main.load = function(filepath, callback) {
 
 // Run the compiler
 Main.run = function() {
+	console.log('Compiling...');
 	Lexer.load(this.file);
 	this.tokens = Lexer.run();
 
@@ -68,18 +69,16 @@ Main.run = function() {
 
 	if(this.tree === -1) return -1;
 
-	// For debugging
-	// fs.writeFileSync("./debug.json", JSON.stringify(this.tree, null, '\t'));
-
 	Output.load(this.tree);
 	delete this.tree;
 	this.output = Output.run();
 
 	if(this.output === -1) return -1;
 
-	fs.writeFileSync("./output.txt", this.output);
+	fs.writeFileSync(this.file.outpath, this.output);
 	delete this.output;
 
+	console.log("Compiled successfully");
 	return 0;
 }
 

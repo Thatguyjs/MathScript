@@ -5,10 +5,22 @@ const Compiler = require("./compiler/main.js");
 const Parser = require("./parser/main.js");
 
 
+// Setup commands
+Command.setPrefix('-');
+Command.setHelp('help');
+
+Command.addCommand('c', "compile a program");
+Command.addCommand('r', "run a compiled program");
+
+
 // Construct a command to compile or parse
 function construct(args) {
+	if(!args[0]) return;
+	if(!args[0].arguments.length) return console.log("A filepath is required");
+
 	let command = {
-		filepath: args[0]
+		type: args[0].name === 'c' ? "compile" : "parse",
+		filepath: args[0].arguments[0]
 	};
 
 	if(command.filepath[0] !== '.' && !command.filepath[1] !== ':') {
@@ -19,6 +31,7 @@ function construct(args) {
 }
 
 
+// Compile a program
 function compile(command) {
 	Compiler.load(command.filepath, (code) => {
 		if(code !== 0) console.log("Error");
@@ -27,4 +40,20 @@ function compile(command) {
 }
 
 
-compile(construct(process.argv.slice(2)));
+// Parse program
+function parse(command) {
+	Parser.load(command.filepath, (code) => {
+		if(code !== 0) console.log("Error");
+		else Parser.run();
+	});
+}
+
+
+// Get arguments and compile / parse
+let arguments = Command.parse(process.argv.slice(2));
+let constructor = construct(arguments);
+
+if(constructor) {
+	if(constructor.type === 'compile') compile(constructor);
+	else if(constructor.type === 'parse') parse(constructor);
+}
