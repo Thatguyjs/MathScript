@@ -39,6 +39,12 @@ Main.callPreset = function(code, params) {
 }
 
 
+// Call a user-defined function
+Main.callFunc = function(address, params) {
+	// TODO
+}
+
+
 // Do operations, return the result
 Main.operate = function(op) {
 	switch(op) {
@@ -73,18 +79,49 @@ Main.parseNode = function() {
 
 	switch(node) {
 
+		// Define a variable
 		case 'def':
 			this.index++;
-			// Allocate memory
-			this.memory[Main.parseNode()] = Main.parseNode();
+			this.memory[Main.parseNode()] = Main.parseNode(); // Allocate memory
 		return;
 
+		// Set a variable
+		case 'set':
+			this.index++;
+			this.memory[Main.parseNode()] = Main.parseNode(); // Set memory
+		return;
+
+		// Get a variable
+		case 'get':
+			this.index++;
+		return this.memory[Main.parseNode()];
+
+		// Operations
 		case 'add':
 		case 'sub':
 		case 'mul':
 		case 'div':
 			this.index++;
 		return Main.operate(node);
+
+		// Call a function
+		case 'run':
+			this.index++;
+
+			let address = Main.parseNode();
+			let params = [];
+
+			while(this.commands[this.index] !== 'end' && !this.error) {
+				params.push(Main.parseNode());
+			}
+
+			this.index++;
+
+			// Pre-defined
+			if(address < 0) Main.callPreset(address, params);
+			else Main.callFunc(address, params);
+		return; // TODO: Return statement from function
+
 
 	}
 
@@ -95,7 +132,7 @@ Main.parseNode = function() {
 
 // Run the program & return the result code
 Main.run = function() {
-	while(this.index < this.commandNum && !this.error) {
+	while(this.index < this.commandNum-1 && !this.error) {
 		this.parseNode(this.index);
 	}
 

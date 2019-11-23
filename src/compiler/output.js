@@ -76,7 +76,7 @@ Main.compileNode = function(node) {
 		// Function calls
 		case 'CALL':
 			node.params = node.params.map(Main.compileNode);
-			node.params.unshift(Main.memory[node.id]);
+			node.params.unshift(Main.valueCode + Main.memory[node.id]);
 			node.params.push("end");
 		return Main.command("run", node.params);
 
