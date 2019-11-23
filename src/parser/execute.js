@@ -49,17 +49,41 @@ Main.callFunc = function(address, params) {
 Main.operate = function(op) {
 	switch(op) {
 
-		case 'add':
-		return Main.parseNode() + Main.parseNode();
-
-		case 'sub':
-		return Main.parseNode() - Main.parseNode();
+		case 'exp':
+		return Main.parseNode() ** Main.parseNode();
 
 		case 'mul':
 		return Main.parseNode() * Main.parseNode();
 
 		case 'div':
 		return Main.parseNode() / Main.parseNode();
+
+		case 'add':
+		return Main.parseNode() + Main.parseNode();
+
+		case 'sub':
+		return Main.parseNode() - Main.parseNode();
+
+		case 'more':
+		return Main.parseNode() > Main.parseNode();
+
+		case 'less':
+		return Main.parseNode() < Main.parseNode();
+
+		case 'moeq':
+		return Main.parseNode() >= Main.parseNode();
+
+		case 'lseq':
+		return Main.parseNode() <= Main.parseNode();
+
+		case 'eqal':
+		return Main.parseNode() === Main.parseNode();
+
+		case 'and':
+		return Main.parseNode() && Main.parseNode();
+
+		case 'or':
+		return Main.parseNode() || Main.parseNode();
 
 	}
 }
@@ -97,10 +121,18 @@ Main.parseNode = function() {
 		return this.memory[Main.parseNode()];
 
 		// Operations
-		case 'add':
-		case 'sub':
+		case 'exp':
 		case 'mul':
 		case 'div':
+		case 'add':
+		case 'sub':
+		case 'more':
+		case 'less':
+		case 'moeq':
+		case 'lseq':
+		case 'eqal':
+		case 'and':
+		case 'or':
 			this.index++;
 		return Main.operate(node);
 

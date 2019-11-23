@@ -73,6 +73,14 @@ Main.compileNode = function(node) {
 		case 'SET':
 		return Main.command("set", [Main.valueCode + Main.memory[node.id], Main.compileNode(node.value)]);
 
+		// Statements
+		case 'STATEMENT':
+			node.params = Main.compileNode(node.params);
+			node.value = node.value.map(Main.compileNode);
+			node.value.push("end");
+			node.value = node.value.join('');
+		return Main.command(node.name, [node.params, "end", node.value]);
+
 		// Function calls
 		case 'CALL':
 			node.params = node.params.map(Main.compileNode);

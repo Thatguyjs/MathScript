@@ -11,10 +11,15 @@ const Main = {
 		[/true|false/, 'BOOLEAN'],
 
 		[/\(|\)/, 'PAREN'],
+		[/\{|\}/, 'BRACE'],
+		
 		[/\*\*|\*|\/|\+|\-|>|<|>=|<=|==|&&|\|\|/, 'OPERATOR'], // The operator `**` is used as `to the power of`
 		[/=/, 'SET'], // Not used for comparisons
 
 		[/int|char|string|bool/, 'DATATYPE'],
+		[/if|else/, 'STATEMENT'],
+		[/function/, 'FUNCTION'],
+
 		[/\w+/, 'NAME'] // Used for anything user-defined
 	],
 
