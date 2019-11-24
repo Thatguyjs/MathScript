@@ -1,3 +1,4 @@
-int number = 6;
+int exp;
+input("Exponent: ", &exp);
 
-print(2 ** number);
+print("2^" + exp, "=", 2 ** exp);

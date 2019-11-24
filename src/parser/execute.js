@@ -1,6 +1,14 @@
+const Events = require("./event.js");
+const IO = require("./io.js");
+
+
+// Init Main
 const Main = {
 	separator: String.fromCharCode(31),
-	valueCode: String.fromCharCode(26),
+
+	stringCode: String.fromCharCode(30),
+	numberCode: String.fromCharCode(29),
+	nullCode: String.fromCharCode(28),
 
 	commands: [],
 	commandNum: 0,
@@ -22,6 +30,10 @@ Main.load = function(data) {
 
 	this.commands = data.split(this.separator);
 	this.commandNum = this.commands.length;
+
+	// Init threads
+	Events.addThread('io');
+
 	return 0;
 }
 
@@ -32,7 +44,27 @@ Main.callPreset = function(code, params) {
 
 		// Print
 		case -1:
-			console.log(params.join(' '));
+			IO.log(params);
+		break;
+
+		// Get input
+		case -2:
+			if(typeof params[0] !== 'string') {
+				IO.error(`Expected \"string\" for input, got \"${typeof params[0]}\" instead`);
+				return this.error = true;
+			}
+			if(typeof params[1] !== 'number') {
+				IO.error(`Expected \"number\" for input, got \"${typeof params[0]}\" instead`);
+				return this.error = true;
+			}
+
+			process.stdout.write(params[0]);
+
+			Events.pause();
+			IO.getInput((data) => {
+				Main.memory[params[1]] = data;
+				Events.resume();
+			});
 		break;
 
 	}
@@ -94,11 +126,17 @@ Main.parseNode = function() {
 	let node = this.commands[this.index];
 
 	// Value (string, number, etc.)
-	if(node[0] === this.valueCode) {
+	if(node[0] === this.stringCode) {
 		this.index++;
-
-		if(!isNaN(Number(node.slice(1)))) return Number(node.slice(1));
 		return node.slice(1);
+	}
+	else if(node[0] === this.numberCode) {
+		this.index++;
+		return Number(node.slice(1));
+	}
+	else if(node[0] === this.nullCode) {
+		this.index++;
+		return null;
 	}
 
 	switch(node) {
@@ -149,10 +187,9 @@ Main.parseNode = function() {
 
 			this.index++;
 
-			// Pre-defined
-			if(address < 0) Main.callPreset(address, params);
-			else Main.callFunc(address, params);
-		return; // TODO: Return statement from function
+		// Pre-defined
+		if(address < 0) return Main.callPreset(address, params);
+		else return Main.callFunc(address, params);
 
 
 	}
@@ -164,16 +201,25 @@ Main.parseNode = function() {
 
 // Run the program & return the result code
 Main.run = function() {
-	while(this.index < this.commandNum-1 && !this.error) {
-		this.parseNode(this.index);
-	}
+	Events.on('tick', () => {
+		if(Main.index < Main.commandNum-1 && !Main.error) {
+			Main.parseNode();
+		}
+		else {
+			Events.remove('tick');
+			Events.do('end');
+		}
+	});
 
-	if(this.error) {
-		console.log("ERROR");
-		return -1;
-	}
+	return new Promise((resolve) => {
+		Events.on('end', () => {
+			if(Main.error) {
+				console.log("ERROR");
+			}
 
-	return this.exitCode;
+			resolve(this.exitCode);
+		});
+	});
 }
 
 

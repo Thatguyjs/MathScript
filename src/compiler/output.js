@@ -4,8 +4,10 @@ const Main = {
 	// Use the `Unit Separator` for separating commands and arguments
 	separator: String.fromCharCode(31),
 
-	// Use `Substitute` in fron of values to prevent confusion with commands
-	valueCode: String.fromCharCode(26),
+	// Prefix non-commands for the parser
+	stringCode: String.fromCharCode(30),
+	numberCode: String.fromCharCode(29),
+	nullCode: String.fromCharCode(28),
 
 	// Maps operators to command names
 	operators: {
@@ -18,7 +20,8 @@ const Main = {
 
 	// Memory references for variables
 	memory: {
-		"print": -1
+		"print": -1,
+		"input": -2
 	},
 
 	// Memory pointer
@@ -58,6 +61,10 @@ Main.compileNode = function(node) {
 		case 'EOL':
 		return "";
 
+		// Ignore commas
+		case 'COMMA':
+		return "";
+
 		// Operations
 		case 'OPERATE':
 		return Main.command(Main.operators[node.name], [Main.compileNode(node.params[0]), Main.compileNode(node.params[1])]);
@@ -67,11 +74,16 @@ Main.compileNode = function(node) {
 			// Create variable reference
 			Main.memory[node.id] = Main.currentAddr;
 			Main.currentAddr++;
-		return Main.command("def", [Main.valueCode + Main.memory[node.id], Main.compileNode(node.value)]);
+		return Main.command("def", [Main.numberCode + Main.memory[node.id], Main.compileNode(node.value)]);
 
 		// Set a variable
 		case 'SET':
-		return Main.command("set", [Main.valueCode + Main.memory[node.id], Main.compileNode(node.value)]);
+		return Main.command("set", [Main.numberCode + Main.memory[node.id], Main.compileNode(node.value)]);
+
+		// Reference and dereference a variable
+		case 'REFERENCE':
+		if(node.id === '&') return Main.numberCode + Main.memory[node.value.value];
+		else return Main.command("get", [Main.compileNode(node.value)]);
 
 		// Statements
 		case 'STATEMENT':
@@ -84,33 +96,46 @@ Main.compileNode = function(node) {
 		// Function calls
 		case 'CALL':
 			node.params = node.params.map(Main.compileNode);
-			node.params.unshift(Main.valueCode + Main.memory[node.id]);
+			node.params.unshift(Main.numberCode + Main.memory[node.id]);
 			node.params.push("end");
 		return Main.command("run", node.params);
 
 		// Names
 		case 'NAME':
-		return Main.command("get", [Main.valueCode + Main.memory[node.value]]);
+		return Main.command("get", [Main.numberCode + Main.memory[node.value]]);
 
 		// Booleans
 		case 'BOOLEAN':
-		return Main.valueCode + (node.value === "true" ? '1' : '0');
+		return Main.numberCode + (node.value === "true" ? '1' : '0');
 
 		// Strings
 		case 'STRING':
-		return Main.valueCode + node.value; // Prevent parser confusion
+		return Main.stringCode + node.value; // Prevent parser confusion
 
-		// Literals
-		default:
-		return Main.valueCode + node.value;
+		// Numbers
+		case 'NUMBER':
+		return Main.numberCode + node.value;
+
+		// Null (no value)
+		case 'NULL':
+		return Main.nullCode;
 
 	}
+
+	// Unexpected node
+	console.log(node);
+	Main.error = true;
 }
 
 
 // Run the parser & return the output string
 Main.run = function() {
 	this.output = Main.compileNode(this.tree);
+
+	if(this.error) {
+		console.log("Error generating commands (step 3 of 3)");
+		return -1;
+	}
 
 	// Remove repeat separators
 	let multiple = new RegExp(this.separator + this.separator, 'g');

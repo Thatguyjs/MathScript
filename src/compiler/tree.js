@@ -78,6 +78,19 @@ Main.walk = function() {
 			return node;
 		}
 
+		// Reference and dereference variables
+		else if(token.type === "REFERENCE") {
+			this.current++;
+
+			let node = {
+				type: "REFERENCE",
+				id: token.value,
+				value: Main.walk()
+			};
+
+			return node;
+		}
+
 		// Function call
 		else if(token.type === "NAME" && peek.value === "(") {
 			this.current += 2;
@@ -181,7 +194,7 @@ Main.run = function() {
 	}
 
 	if(this.error) {
-		console.log("Error generating AST");
+		console.log("Error generating AST (step 2 of 3)");
 		return -1;
 	}
 
