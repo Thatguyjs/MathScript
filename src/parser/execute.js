@@ -14,6 +14,8 @@ const Main = {
 	commandNum: 0,
 	index: 1, // Skip `Program`
 
+	statementPassed: false,
+
 	memory: [],
 
 	error: false,
@@ -30,9 +32,6 @@ Main.load = function(data) {
 
 	this.commands = data.split(this.separator);
 	this.commandNum = this.commands.length;
-
-	// Init threads
-	Events.addThread('io');
 
 	return 0;
 }
@@ -62,10 +61,14 @@ Main.callPreset = function(code, params) {
 
 			Events.pause();
 			IO.getInput((data) => {
-				Main.memory[params[1]] = data;
+				Main.memory[params[1]] = data.replace(/\r|\n/g, ''); // Remove newlines
 				Events.resume();
 			});
 		break;
+
+		// Turn into number
+		case -3:
+		return Number(params[0]);
 
 	}
 }
@@ -139,6 +142,8 @@ Main.parseNode = function() {
 		return null;
 	}
 
+	let condition = false;
+
 	switch(node) {
 
 		// Define a variable
@@ -174,6 +179,56 @@ Main.parseNode = function() {
 			this.index++;
 		return Main.operate(node);
 
+		// If statement
+		case 'if':
+			this.index++;
+
+			condition = Main.parseNode();
+			this.index++;
+
+			if(condition) {
+				this.statementPassed = true;
+
+				while(this.commands[this.index] !== 'endif' && !this.error) {
+					Main.parseNode();
+				}
+			}
+			else {
+				this.statementPassed = false;
+
+				while(this.commands[this.index] !== 'endif') {
+					this.index++;
+				}
+			}
+
+			this.index++;
+		return;
+
+		// Else statement
+		case 'else':
+			this.index++;
+
+			condition = Main.parseNode();
+			this.index++;
+
+			if(!this.statementPassed && condition) {
+				this.statementPassed = true;
+
+				while(this.commands[this.index] !== 'endif' && !this.error) {
+					Main.parseNode();
+				}
+			}
+			else {
+				while(this.commands[this.index] !== 'endif') {
+					this.index++;
+				}
+
+				if(this.commands[this.index+1] !== 'else') this.statementPassed = false;
+			}
+
+			this.index++;
+		return;
+
 		// Call a function
 		case 'run':
 			this.index++;
@@ -190,7 +245,6 @@ Main.parseNode = function() {
 		// Pre-defined
 		if(address < 0) return Main.callPreset(address, params);
 		else return Main.callFunc(address, params);
-
 
 	}
 

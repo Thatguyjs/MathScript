@@ -84,7 +84,7 @@ Main.walk = function() {
 
 			let node = {
 				type: "REFERENCE",
-				id: token.value,
+				name: token.value,
 				value: Main.walk()
 			};
 
@@ -153,7 +153,7 @@ Main.walk = function() {
 		let node = {
 			type: "STATEMENT",
 			name: token.value,
-			params: {},
+			params: { type: "BOOLEAN", value: "true" },
 			value: []
 		};
 

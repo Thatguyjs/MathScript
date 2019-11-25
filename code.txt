@@ -1,4 +1,14 @@
 int exp;
-input("Exponent: ", &exp);
+input("Number: ", &exp);
 
-print("2^" + exp, "=", 2 ** exp);
+exp = number(exp);
+
+if(exp > 5) {
+	print("More than 5!");
+}
+else if(exp == 5) {
+	print("Equal to 5!");
+}
+else {
+	print("Less than 5!");
+}

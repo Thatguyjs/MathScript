@@ -67,6 +67,10 @@ Main.run = function() {
 	delete this.tokens;
 	this.tree = Tree.run();
 
+	// For debugging
+	// fs.writeFileSync("./debug.json", JSON.stringify(this.tree, null, '\t'));
+	// return;
+
 	if(this.tree === -1) return -1;
 
 	Output.load(this.tree);

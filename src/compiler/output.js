@@ -21,7 +21,8 @@ const Main = {
 	// Memory references for variables
 	memory: {
 		"print": -1,
-		"input": -2
+		"input": -2,
+		"number": -3
 	},
 
 	// Memory pointer
@@ -82,14 +83,14 @@ Main.compileNode = function(node) {
 
 		// Reference and dereference a variable
 		case 'REFERENCE':
-		if(node.id === '&') return Main.numberCode + Main.memory[node.value.value];
+		if(node.name === '&') return Main.numberCode + Main.memory[node.value.value];
 		else return Main.command("get", [Main.compileNode(node.value)]);
 
 		// Statements
 		case 'STATEMENT':
 			node.params = Main.compileNode(node.params);
 			node.value = node.value.map(Main.compileNode);
-			node.value.push("end");
+			node.value.push("endif");
 			node.value = node.value.join('');
 		return Main.command(node.name, [node.params, "end", node.value]);
 
@@ -123,7 +124,6 @@ Main.compileNode = function(node) {
 	}
 
 	// Unexpected node
-	console.log(node);
 	Main.error = true;
 }
 
