@@ -37,9 +37,9 @@ Main.load = function(filepath, callback) {
 	// Setup the `Main.file` object
 	this.file.path = filepath;
 	if(filepath.replace(/\.\/|\.\.\//, '').includes('.'))
-		this.file.outpath = filepath.slice(0, filepath.lastIndexOf('.')) + '.mexe'
+		this.file.outpath = filepath.slice(0, filepath.lastIndexOf('.')) + '.mse'
 	else
-		this.file.outpath = filepath + '.mexe';
+		this.file.outpath = filepath + '.mse';
 
 	// Read data from stream
 	stream.on('data', (chunk) => {
