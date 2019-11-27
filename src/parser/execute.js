@@ -1,8 +1,6 @@
-const Events = require("./event.js");
 const IO = require("./io.js");
 
 
-// Init Main
 const Main = {
 	separator: String.fromCharCode(31),
 
@@ -12,7 +10,7 @@ const Main = {
 
 	commands: [],
 	commandNum: 0,
-	index: 1, // Skip `Program`
+	index: 1,
 
 	statementPassed: false,
 
@@ -37,7 +35,7 @@ Main.load = function(data) {
 }
 
 
-// Call a pre-defined function
+// Default functions
 Main.callPreset = function(code, params) {
 	switch(code) {
 
@@ -46,27 +44,22 @@ Main.callPreset = function(code, params) {
 			IO.log(params);
 		break;
 
-		// Get input
+		// Input
 		case -2:
 			if(typeof params[0] !== 'string') {
 				IO.error(`Expected \"string\" for input, got \"${typeof params[0]}\" instead`);
 				return this.error = true;
 			}
-			if(typeof params[1] !== 'number') {
-				IO.error(`Expected \"number\" for input, got \"${typeof params[0]}\" instead`);
-				return this.error = true;
-			}
 
 			process.stdout.write(params[0]);
 
-			Events.pause();
+		return new Promise((resolve) => {
 			IO.getInput((data) => {
-				Main.memory[params[1]] = data.replace(/\r|\n/g, ''); // Remove newlines
-				Events.resume();
-			});
-		break;
+				resolve(data.slice(0, -1)); // Remove newline
+			})
+		});
 
-		// Turn into number
+		// Number
 		case -3:
 		return Number(params[0]);
 
@@ -74,61 +67,55 @@ Main.callPreset = function(code, params) {
 }
 
 
-// Call a user-defined function
-Main.callFunc = function(address, params) {
-	// TODO
-}
-
-
 // Do operations, return the result
-Main.operate = function(op) {
+Main.operate = async function(op) {
 	switch(op) {
 
 		case 'exp':
-		return Main.parseNode() ** Main.parseNode();
+		return await Main.parseNode() ** await Main.parseNode();
 
 		case 'mul':
-		return Main.parseNode() * Main.parseNode();
+		return await Main.parseNode() * await Main.parseNode();
 
 		case 'div':
-		return Main.parseNode() / Main.parseNode();
+		return await Main.parseNode() / await Main.parseNode();
 
 		case 'add':
-		return Main.parseNode() + Main.parseNode();
+		return await Main.parseNode() + await Main.parseNode();
 
 		case 'sub':
-		return Main.parseNode() - Main.parseNode();
+		return await Main.parseNode() - await Main.parseNode();
 
 		case 'more':
-		return Main.parseNode() > Main.parseNode();
+		return await Main.parseNode() > await Main.parseNode();
 
 		case 'less':
-		return Main.parseNode() < Main.parseNode();
+		return await Main.parseNode() < await Main.parseNode();
 
 		case 'moeq':
-		return Main.parseNode() >= Main.parseNode();
+		return await Main.parseNode() >= await Main.parseNode();
 
 		case 'lseq':
-		return Main.parseNode() <= Main.parseNode();
+		return await Main.parseNode() <= await Main.parseNode();
 
 		case 'eqal':
-		return Main.parseNode() === Main.parseNode();
+		return await Main.parseNode() === await Main.parseNode();
 
 		case 'and':
-		return Main.parseNode() && Main.parseNode();
+		return await Main.parseNode() && await Main.parseNode();
 
 		case 'or':
-		return Main.parseNode() || Main.parseNode();
+		return await Main.parseNode() || await Main.parseNode();
 
 	}
 }
 
 
-// Parse & run the next command
-Main.parseNode = function() {
+// Parse the next node (command or value)
+Main.parseNode = async function() {
 	let node = this.commands[this.index];
+	let temp = []; // Temporary storage
 
-	// Value (string, number, etc.)
 	if(node[0] === this.stringCode) {
 		this.index++;
 		return node.slice(1);
@@ -142,26 +129,7 @@ Main.parseNode = function() {
 		return null;
 	}
 
-	let condition = false;
-
 	switch(node) {
-
-		// Define a variable
-		case 'def':
-			this.index++;
-			this.memory[Main.parseNode()] = Main.parseNode(); // Allocate memory
-		return;
-
-		// Set a variable
-		case 'set':
-			this.index++;
-			this.memory[Main.parseNode()] = Main.parseNode(); // Set memory
-		return;
-
-		// Get a variable
-		case 'get':
-			this.index++;
-		return this.memory[Main.parseNode()];
 
 		// Operations
 		case 'exp':
@@ -177,20 +145,37 @@ Main.parseNode = function() {
 		case 'and':
 		case 'or':
 			this.index++;
-		return Main.operate(node);
+		return await Main.operate(node);
 
-		// If statement
+		// Define a variable
+		case 'def':
+			this.index++;
+			this.memory[await Main.parseNode()] = await Main.parseNode(); // Allocate memory
+		return;
+
+		// Set a variable
+		case 'set':
+			this.index++;
+			this.memory[await Main.parseNode()] = await Main.parseNode(); // Set memory
+		return;
+
+		// Get a variable
+		case 'get':
+			this.index++;
+		return this.memory[await Main.parseNode()];
+
+		// If statements
 		case 'if':
 			this.index++;
 
-			condition = Main.parseNode();
+			temp[0] = await Main.parseNode(); // Condition
 			this.index++;
 
-			if(condition) {
+			if(temp[0]) {
 				this.statementPassed = true;
 
 				while(this.commands[this.index] !== 'endif' && !this.error) {
-					Main.parseNode();
+					await Main.parseNode();
 				}
 			}
 			else {
@@ -204,18 +189,18 @@ Main.parseNode = function() {
 			this.index++;
 		return;
 
-		// Else statement
+		// Else statements
 		case 'else':
 			this.index++;
 
-			condition = Main.parseNode();
+			temp[0] = await Main.parseNode(); // Condition
 			this.index++;
 
-			if(!this.statementPassed && condition) {
+			if(!this.statementPassed && temp[0]) {
 				this.statementPassed = true;
 
 				while(this.commands[this.index] !== 'endif' && !this.error) {
-					Main.parseNode();
+					await Main.parseNode();
 				}
 			}
 			else {
@@ -233,18 +218,17 @@ Main.parseNode = function() {
 		case 'run':
 			this.index++;
 
-			let address = Main.parseNode();
-			let params = [];
+			temp[0] = await Main.parseNode(); // Address
+			temp[1] = []; // Parameters
 
 			while(this.commands[this.index] !== 'end' && !this.error) {
-				params.push(Main.parseNode());
+				temp[1].push(await Main.parseNode());
 			}
 
 			this.index++;
 
-		// Pre-defined
-		if(address < 0) return Main.callPreset(address, params);
-		else return Main.callFunc(address, params);
+		if(temp[0] < 0) return await Main.callPreset(temp[0], temp[1]);
+		else return await Main.callFunc(temp[0], temp[1]);
 
 	}
 
@@ -253,27 +237,11 @@ Main.parseNode = function() {
 }
 
 
-// Run the program & return the result code
-Main.run = function() {
-	Events.on('tick', () => {
-		if(Main.index < Main.commandNum-1 && !Main.error) {
-			Main.parseNode();
-		}
-		else {
-			Events.remove('tick');
-			Events.do('end');
-		}
-	});
-
-	return new Promise((resolve) => {
-		Events.on('end', () => {
-			if(Main.error) {
-				console.log("ERROR");
-			}
-
-			resolve(this.exitCode);
-		});
-	});
+// Run the parser
+Main.run = async function() {
+	while(this.index < this.commandNum-1 && !this.error) {
+		await this.parseNode();
+	}
 }
 
 

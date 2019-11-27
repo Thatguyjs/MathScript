@@ -1,12 +1,9 @@
-int exp;
-input("Number: ", &exp);
+int value = number(input("Number: "));
 
-exp = number(exp);
-
-if(exp > 5) {
+if(value > 5) {
 	print("More than 5!");
 }
-else if(exp == 5) {
+else if(value == 5) {
 	print("Equal to 5!");
 }
 else {
