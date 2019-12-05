@@ -4,17 +4,25 @@ const Main = {
 	keywords: [
 		[/\s+/, 'NONE'],
 		[/\/\/|\/\*/, 'COMMENT'], // Comments start with `//` and `/*`
+
 		[/;/, 'EOL'], // Only used in certain cases
+		[/,/, 'COMMA'],
 
 		[/\d+/, 'NUMBER'],
 		[/\"|\'|\`/, 'STRING'], // The whole string is captured after a quotation mark
 		[/true|false/, 'BOOLEAN'],
 
 		[/\(|\)/, 'PAREN'],
+		[/\{|\}/, 'BRACE'],
+
 		[/\*\*|\*|\/|\+|\-|>|<|>=|<=|==|&&|\|\|/, 'OPERATOR'], // The operator `**` is used as `to the power of`
 		[/=/, 'SET'], // Not used for comparisons
+		[/&|~/, 'REFERENCE'], // References (&) and dereferences (~)
 
 		[/int|char|string|bool/, 'DATATYPE'],
+		[/if|else/, 'STATEMENT'],
+		[/function/, 'FUNCTION'],
+
 		[/\w+/, 'NAME'] // Used for anything user-defined
 	],
 
@@ -124,7 +132,7 @@ Main.run = function() {
 	}
 
 	if(this.error) {
-		console.log("Error generating tokens");
+		console.log("Error generating tokens (step 1 of 3)");
 		return -1;
 	}
 

@@ -2,6 +2,7 @@
 
 const Main = {
 	tokens: [],
+	tokenNum: 0,
 	current: 0,
 
 	tree: { type: "Program", body: [] },
@@ -13,6 +14,7 @@ const Main = {
 // Load a list of tokens
 Main.load = function(tokens) {
 	this.tokens = tokens;
+	this.tokenNum = this.tokens.length;
 }
 
 
@@ -76,6 +78,19 @@ Main.walk = function() {
 			return node;
 		}
 
+		// Reference and dereference variables
+		else if(token.type === "REFERENCE") {
+			this.current++;
+
+			let node = {
+				type: "REFERENCE",
+				name: token.value,
+				value: Main.walk()
+			};
+
+			return node;
+		}
+
 		// Function call
 		else if(token.type === "NAME" && peek.value === "(") {
 			this.current += 2;
@@ -130,6 +145,36 @@ Main.walk = function() {
 		return node;
 	}
 
+	// If / else if / else statements
+	else if(token.type === "STATEMENT") {
+		this.current += 2;
+
+		// Construct node
+		let node = {
+			type: "STATEMENT",
+			name: token.value,
+			params: { type: "BOOLEAN", value: "true" },
+			value: []
+		};
+
+		// Check for else if
+		if(peek.value === 'if') this.current++;
+
+		// Check for else
+		if(peek.value !== '{') node.params = Main.walk();
+		else this.current -= 2;
+
+		this.current += 2;
+
+		// Get statement content
+		while(this.current < this.tokenNum && this.tokens[this.current].value !== '}') {
+			node.value.push(Main.walk());
+		}
+
+		this.current++;
+		return node;
+	}
+
 	// Misc. Token types
 	else {
 		this.current++;
@@ -144,12 +189,12 @@ Main.walk = function() {
 
 // Generate a tree from `Main.tokens`
 Main.run = function() {
-	while(this.current < this.tokens.length && !this.error) {
+	while(this.current < this.tokenNum && !this.error) {
 		this.tree.body.push(this.walk());
 	}
 
 	if(this.error) {
-		console.log("Error generating AST");
+		console.log("Error generating AST (step 2 of 3)");
 		return -1;
 	}
 

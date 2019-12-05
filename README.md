@@ -1,7 +1,5 @@
 # MathScript
-A new *compiled* programming language, built as a mix between JS, C++, and Python.
-
-Note: This language is still in development, some features may not work as expected.
+A *compiled* programming language, built as a mix between JS, C++, and Python.
 
 # Features
 An ever-increasing list of cool things to be excited about
@@ -13,3 +11,5 @@ An ever-increasing list of cool things to be excited about
 
 # What About Syntax?
 See `example.rawm` for an introduction to the language (Todo)
+
+***This language is still in development, some features may not work as expected.***
