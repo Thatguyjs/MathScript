@@ -25,6 +25,9 @@ const Main = {
 		"number": -3
 	},
 
+	// Temporary storage
+	temp: {},
+
 	// Memory pointer
 	currentAddr: 0,
 
@@ -81,6 +84,11 @@ Main.compileNode = function(node) {
 		case 'SET':
 		return Main.command("set", [Main.numberCode + Main.memory[node.id], Main.compileNode(node.value)]);
 
+		// Temporary definitions
+		case 'TEMP':
+			Main.temp[node.id] = Main.currentTempAddr;
+		return Main.command("temp", [Main.numberCode + Main.temp[node.id], Main.compileNode(node.value)]);
+
 		// Reference and dereference a variable
 		case 'REFERENCE':
 		if(node.name === '&') return Main.numberCode + Main.memory[node.value.value];
@@ -93,6 +101,14 @@ Main.compileNode = function(node) {
 			node.value.push("endif");
 			node.value = node.value.join('');
 		return Main.command(node.name, [node.params, "end", node.value]);
+
+		// Function definitions
+		case 'FUNCTION':
+			node.params = node.params.map(Main.compileNode).join("");
+			node.value = node.value.map(Main.compileNode);
+			node.value.push("end");
+			node.value = node.value.join('');
+		return Main.command('func', [node.params, "end", node.value]);
 
 		// Function calls
 		case 'CALL':

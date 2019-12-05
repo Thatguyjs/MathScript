@@ -103,7 +103,10 @@ Main.walk = function() {
 
 			// Get parameters
 			while(this.tokens[this.current].value !== ")") {
-				node.params.push(Main.walk());
+				node.params.push({
+					type: "TEMP", // Store in temporary storage
+					value: Main.walk()
+				});
 			}
 
 			this.current++;
@@ -131,14 +134,8 @@ Main.walk = function() {
 				node.value = Main.walk();
 			break;
 
-			case 'EOL':
-				this.current += 2;
-			break;
-
 			default:
-				this.error = true;
-				console.log("Unexpected Token: " + Main.tokens[this.current+2].value);
-			break;
+				this.current += 2;
 
 		}
 
@@ -166,8 +163,40 @@ Main.walk = function() {
 
 		this.current += 2;
 
-		// Get statement content
+		// Get statement contents
 		while(this.current < this.tokenNum && this.tokens[this.current].value !== '}') {
+			node.value.push(Main.walk());
+		}
+
+		this.current++;
+		return node;
+	}
+
+	// Functions
+	else if(token.type === "FUNCTION") {
+		this.current += 2;
+
+		// Construct node
+		let node = {
+			type: "FUNCTION",
+			params: [],
+			value: []
+		};
+
+		// Get parameters
+		while(this.tokens[this.current].value !== ')') {
+			node.params.push(Main.walk());
+		}
+
+		// Convert parameter types to `GTEMP` (Get Temporary)
+		for(let p in node.params) {
+			node.params[p].type = "GTEMP";
+		}
+
+		this.current += 2;
+
+		// Get contents
+		while(this.tokens[this.current].value !== '}') {
 			node.value.push(Main.walk());
 		}
 
@@ -182,7 +211,7 @@ Main.walk = function() {
 	}
 
 	// No match
-	this.error = true;
+	Main.error = true;
 	return null;
 }
 

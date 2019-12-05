@@ -1,11 +1,5 @@
-int value = number(input("Number: "));
+int logValue = function(int value) {
+	print(value);
+}
 
-if(value > 5) {
-	print("More than 5!");
-}
-else if(value == 5) {
-	print("Equal to 5!");
-}
-else {
-	print("Less than 5!");
-}
+logValue("It works!");

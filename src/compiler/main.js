@@ -34,19 +34,19 @@ Main.load = function(filepath, callback) {
 		return;
 	}
 
-	// Setup the `Main.file` object
+	// Set the output filepath
 	this.file.path = filepath;
 	if(filepath.replace(/\.\/|\.\.\//, '').includes('.'))
 		this.file.outpath = filepath.slice(0, filepath.lastIndexOf('.')) + '.mse'
 	else
 		this.file.outpath = filepath + '.mse';
 
-	// Read data from stream
+	// Read file data
 	stream.on('data', (chunk) => {
 		Main.file.data += chunk;
 	});
 
-	// Close stream
+	// Stop reading
 	stream.on('end', () => {
 		stream.close();
 
@@ -58,27 +58,29 @@ Main.load = function(filepath, callback) {
 // Run the compiler
 Main.run = function() {
 	console.log('Compiling...');
+
+	// Generate tokens
 	Lexer.load(this.file);
 	this.tokens = Lexer.run();
-
 	if(this.tokens === -1) return -1;
 
+	// Generate tree from tokens
 	Tree.load(this.tokens);
 	delete this.tokens;
 	this.tree = Tree.run();
+	if(this.tree === -1) return -1;
 
 	// For debugging
 	// fs.writeFileSync("./debug.json", JSON.stringify(this.tree, null, '\t'));
 	// return;
 
-	if(this.tree === -1) return -1;
-
+	// Generate commands from tree
 	Output.load(this.tree);
 	delete this.tree;
 	this.output = Output.run();
-
 	if(this.output === -1) return -1;
 
+	// Create the compiled file
 	fs.writeFileSync(this.file.outpath, this.output);
 	delete this.output;
 
